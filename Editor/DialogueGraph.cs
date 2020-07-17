@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
+using UnityEditor.Experimental.GraphView;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UI;
@@ -24,6 +25,19 @@ public class DialogueGraph : EditorWindow
     {
         ConstructGraphView();
         GenerateToolbar();
+        GenerateMinimap();
+    }
+
+    private void GenerateMinimap()
+    {
+        var miniMap = new MiniMap
+        {
+            anchored = true   
+        };
+
+        miniMap.SetPosition(new Rect(10, 30, 200, 140));
+        _graphView.Add(miniMap);
+
     }
 
     private void OnDisable()
@@ -53,9 +67,10 @@ public class DialogueGraph : EditorWindow
         filenameTextField.MarkDirtyRepaint();
         filenameTextField.RegisterValueChangedCallback(evt => _fileName = evt.newValue);
         toolbar.Add(filenameTextField);
+       
 
         //button
-       toolbar.Add(new Button (()=>RequestDataOperation(true)) { text = "Save Data"});
+        toolbar.Add(new Button (()=>RequestDataOperation(true)) { text = "Save Data"});
        toolbar.Add(new Button (()=>RequestDataOperation(false)) { text = "Load Data"});
 
         var nodeCreateButton = new Button(() =>

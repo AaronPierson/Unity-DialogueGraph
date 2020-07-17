@@ -2,9 +2,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http.Headers;
 using UnityEditor;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class GraphSaveUtility 
 {
@@ -46,7 +48,7 @@ public class GraphSaveUtility
 
         foreach (var dialogueNode in Nodes.Where(node=>!node.EntryPoint))
         {
-            dialogueContainer.dialogueNodeData.Add(new DialogueNodeData 
+            dialogueContainer.DialogueNodeData.Add(new DialogueNodeData 
             { 
                 Guid = dialogueNode.GUID,
                 DialogueText = dialogueNode.DialogueText,
@@ -79,9 +81,44 @@ public class GraphSaveUtility
 
     }
 
+    private void ConnectNodes()
+    {
+        for (var i = 0; i < Nodes.Count; i++)
+        {
+            var connections = _containerCache.NodeLinks.Where(
+                x => x.BaseNodeGuid == Nodes[i].GUID).ToList();
+
+            for (var j = 0; j < connections.Count; j++)
+            {
+                var targetNodeGuid = connections[j].targetNodeGuid;
+                var targetNode = Nodes.First(x => x.GUID == targetNodeGuid);
+                LinkNodes(Nodes[i].outputContainer[j].Q<Port>(),
+                    (Port)targetNode.inputContainer[0]);
+
+                targetNode.SetPosition(new Rect(_containerCache.DialogueNodeData.First(
+                    x => x.Guid == targetNodeGuid).Position,
+                    _targetGraphView.defaultNodeSize
+                    ));
+            }
+        }
+    }
+    //Link the nodes after the load
+    private void LinkNodes(Port output, Port input)
+    {
+        var tempEdge = new Edge
+        {
+            output = output,
+            input = input
+        };
+
+        tempEdge?.input.Connect(tempEdge);
+        tempEdge?.output.Connect(tempEdge);
+        _targetGraphView.Add(tempEdge);
+    }
+
     private void CreateNodes()
     {
-        foreach (var nodeData in _containerCache.dialogueNodeData)
+        foreach (var nodeData in _containerCache.DialogueNodeData)
         {
             var tempNode = _targetGraphView.CreateDialogueNode(nodeData.DialogueText);
             tempNode.GUID = nodeData.Guid;
@@ -100,7 +137,7 @@ public class GraphSaveUtility
 
         foreach (var node in Nodes)
         {
-            if (node.EntryPoint) return;
+            if (node.EntryPoint) continue;
 
             //Remove edges that connected to this node
             Edges.Where(x => x.input.node == node).ToList()
