@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.UIElements;
@@ -26,6 +27,33 @@ public class DialogueGraph : EditorWindow
         ConstructGraphView();
         GenerateToolbar();
         GenerateMinimap();
+        GenerateBlackBoard();
+    }
+
+    private void GenerateBlackBoard()
+    {
+        var blackBoard = new Blackboard(_graphView);
+        blackBoard.Add(new BlackboardSection { title = "Exposed Properties" });
+        blackBoard.addItemRequested = _blackBoard => { _graphView.AddPropertyToBlackBoard(new ExposedProperty()); };
+        blackBoard.editTextRequested = (blackBoard1, element, newValue) =>
+        {
+            //Dialogue graph view Blackboard text property then cast
+            var oldPropertyName = ((BlackboardField)element).text;
+            if(_graphView.ExposedProperties.Any(x => x.PropertyName == newValue))
+            {
+                EditorUtility.DisplayDialog("Error", "This property name already exits, Please chose another one!", "OK");
+                return;
+            }
+
+            var propertyIndex = _graphView.ExposedProperties.FindIndex(x => x.PropertyName == oldPropertyName);
+            _graphView.ExposedProperties[propertyIndex].PropertyName = newValue;
+            ((BlackboardField)element).text = newValue;
+
+        };
+
+        blackBoard.SetPosition(new Rect(10,30,200,300));
+        _graphView.Add(blackBoard);
+        _graphView.Blackboard = blackBoard;
     }
 
     private void GenerateMinimap()
@@ -34,8 +62,9 @@ public class DialogueGraph : EditorWindow
         {
             anchored = true   
         };
-
-        miniMap.SetPosition(new Rect(10, 30, 200, 140));
+        //This will give 10 px offset from left side
+        var cords = _graphView.contentContainer.WorldToLocal(new Vector2(this.maxSize.x - 10, 30));
+        miniMap.SetPosition(new Rect(cords.x, cords.y, 200, 140));
         _graphView.Add(miniMap);
 
     }
@@ -45,10 +74,10 @@ public class DialogueGraph : EditorWindow
         rootVisualElement.Remove(_graphView);
     }
 
-
+    //editor window
     private void ConstructGraphView()
     {
-        _graphView = new DialogueGraphView
+        _graphView = new DialogueGraphView(this)
         {
             name = "Dialogue Graph"
         };
@@ -73,13 +102,15 @@ public class DialogueGraph : EditorWindow
         toolbar.Add(new Button (()=>RequestDataOperation(true)) { text = "Save Data"});
        toolbar.Add(new Button (()=>RequestDataOperation(false)) { text = "Load Data"});
 
-        var nodeCreateButton = new Button(() =>
-        {
-            _graphView.CreateNode("Dialogue Node");
-        });
-        nodeCreateButton.text = "Create Node";
 
-        toolbar.Add(nodeCreateButton);
+
+        //var nodeCreateButton = new Button(() =>
+        //{
+        //    _graphView.CreateNode("Dialogue Node");
+        //});
+        //nodeCreateButton.text = "Create Node";
+
+        //toolbar.Add(nodeCreateButton);
         rootVisualElement.Add(toolbar);
     }
 

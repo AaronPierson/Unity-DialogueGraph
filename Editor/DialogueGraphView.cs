@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.UI;
@@ -10,8 +11,13 @@ using Button = UnityEngine.UIElements.Button;
 
 public class DialogueGraphView : GraphView
 {
-    public readonly Vector2 defaultNodeSize = new Vector2(15,200);
-    public DialogueGraphView()
+    //content window
+    public readonly Vector2 defaultNodeSize = new Vector2(15, 200);
+    public Blackboard Blackboard;
+    public List<ExposedProperty> ExposedProperties = new List<ExposedProperty>();
+    private NodeSearchWindow _searchWindow;
+    //Viewer constucutor
+    public DialogueGraphView(EditorWindow editorWindow)
     {
         styleSheets.Add(Resources.Load<StyleSheet>("DialogueGraph"));
         //Setting up Zoom in the DialogueEditor
@@ -25,8 +31,62 @@ public class DialogueGraphView : GraphView
         Insert(0, grid);
         grid.StretchToParentSize();
 
-       AddElement(GenerateEntryPointNode());
+        AddElement(GenerateEntryPointNode());
+        AddSearchWindow(editorWindow);
+    }
 
+    public void ClearBlackBoardAndExposedProperties()
+    {
+        ExposedProperties.Clear();
+        Blackboard.Clear();
+    }
+
+    internal void AddPropertyToBlackBoard(ExposedProperty exposedProperty)
+    {
+        //local var for the blackboard prop
+        var localPropertyName = exposedProperty.PropertyName;
+        var localPropertyValue = exposedProperty.PropertyValue;
+        //loop through and find the any duplicts and another +1 to name
+        while (ExposedProperties.Any(x => x.PropertyName == localPropertyName))
+            localPropertyName = $"{localPropertyName}(1)"; // 
+
+        var property = new ExposedProperty();
+        property.PropertyName = localPropertyName;
+        property.PropertyValue = localPropertyValue;
+        ExposedProperties.Add(property);
+
+        var container = new VisualElement();
+        var blackboardField = new BlackboardField
+        {
+            text = property.PropertyName,
+            typeText = "string property"
+        };
+        container.Add(blackboardField);
+        //add value fiels into black board
+        var propertyValueTextField = new TextField("value")
+        { 
+            value = localPropertyValue
+        };
+        propertyValueTextField.RegisterValueChangedCallback(evt =>
+        {
+            var changingPropertyIndex = ExposedProperties.FindIndex(x => x.PropertyName == property.PropertyName);
+            ExposedProperties[changingPropertyIndex].PropertyValue = evt.newValue;
+        });
+        
+        var blackBoardValueRow = new BlackboardRow(blackboardField, propertyValueTextField);
+        container.Add(blackBoardValueRow);
+        Blackboard.Add(container);
+
+    }
+
+    private void AddSearchWindow(EditorWindow editorWindow)
+    {
+        //get data provider
+        _searchWindow = ScriptableObject.CreateInstance<NodeSearchWindow>();
+        //and the graph view to searchwindow
+        _searchWindow.Init(editorWindow, this);
+        //sub to the graph api and open window
+        nodeCreationRequest = context => SearchWindow.Open(new SearchWindowContext(context.screenMousePosition), _searchWindow);
     }
 
     public override List<Port> GetCompatiblePorts(Port startPort, NodeAdapter nodeAdapter)
@@ -70,12 +130,14 @@ public class DialogueGraphView : GraphView
         return node;
     }
 
-    public void CreateNode(string nodeName)
+    public void CreateNode(string nodeName, Vector2 position)
     {
-        AddElement(CreateDialogueNode(nodeName));
+        //Dio Node
+        AddElement(CreateDialogueNode(nodeName, position));
+
     }
 
-    public DialogueNode CreateDialogueNode(string nodeName)
+    public DialogueNode CreateDialogueNode(string nodeName, Vector2 position)
     {
         var dialogueNode = new DialogueNode
         {
@@ -106,7 +168,7 @@ public class DialogueGraphView : GraphView
 
         dialogueNode.RefreshExpandedState();
         dialogueNode.RefreshPorts();
-        dialogueNode.SetPosition(new Rect(Vector2.zero, defaultNodeSize));
+        dialogueNode.SetPosition(new Rect(position, defaultNodeSize));
 
         return dialogueNode;
 

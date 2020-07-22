@@ -13,9 +13,14 @@ MonoBehaviour:
   m_Name: New Narrative
   m_EditorClassIdentifier: 
   NodeLinks:
+  - BaseNodeGuid: 3a4f4444-226b-4210-9959-0d601c98af63
+    PortName: Choice 1
+    targetNodeGuid: af842929-d551-41d3-ba27-956ce6b7b3d8
   - BaseNodeGuid: ad34d661-f1d8-4682-9a36-758e8f091563
     PortName: Next
-    targetNodeGuid: eb18145d-a058-4129-86aa-0eed3ffeaafb
-  - BaseNodeGuid: eb18145d-a058-4129-86aa-0eed3ffeaafb
-    PortName: not telling you
-    targetNodeGuid: fedf745a-7528-45dd-b429-b1967b65a4c8
+    targetNodeGuid: 3a4f4444-226b-4210-9959-0d601c98af63
+  ExposedProperties:
+  - PropertyName: New String
+    PropertyValue: new Value
+  - PropertyName: asdfas
+    PropertyValue: ffff
