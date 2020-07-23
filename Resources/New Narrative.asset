@@ -13,14 +13,15 @@ MonoBehaviour:
   m_Name: New Narrative
   m_EditorClassIdentifier: 
   NodeLinks:
-  - BaseNodeGuid: 3a4f4444-226b-4210-9959-0d601c98af63
-    PortName: Choice 1
-    targetNodeGuid: af842929-d551-41d3-ba27-956ce6b7b3d8
-  - BaseNodeGuid: ad34d661-f1d8-4682-9a36-758e8f091563
+  - BaseNodeGuid: 5d5fe5fb-b1e7-4af8-87ff-a8d52b36dc8b
     PortName: Next
-    targetNodeGuid: 3a4f4444-226b-4210-9959-0d601c98af63
+    targetNodeGuid: d689182c-254c-4a93-8892-f67a1ef68d0c
+  - BaseNodeGuid: d689182c-254c-4a93-8892-f67a1ef68d0c
+    PortName: Choice 1
+    targetNodeGuid: fb50c906-267c-4e9f-91e9-3343a7c6aa42
+  - BaseNodeGuid: d689182c-254c-4a93-8892-f67a1ef68d0c
+    PortName: Choice 2
+    targetNodeGuid: bb3cd1d6-033c-4223-8f1c-e7760246d49e
   ExposedProperties:
-  - PropertyName: New String
-    PropertyValue: new Value
-  - PropertyName: asdfas
-    PropertyValue: ffff
+  - PropertyName: is cold
+    PropertyValue: No

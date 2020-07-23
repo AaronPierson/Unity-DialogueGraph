@@ -6,5 +6,5 @@ using UnityEngine;
 public class ExposedProperty
 {
     public string PropertyName  = "New String";
-    public string PropertyValue = "new Value";
+    public string PropertyValue = "New Value";
 }

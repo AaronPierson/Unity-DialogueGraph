@@ -15,6 +15,7 @@ public class DialogueGraph : EditorWindow
     private DialogueGraphView _graphView;
     private string _fileName = "New Narrative";
 
+    //makes Graph apper as a window in unity
     [MenuItem("Graph/Dialogue Graph")]
     public static void OpenDialogueGraphWindow()
     {
